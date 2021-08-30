@@ -1,0 +1,11 @@
+[center][color=red][size=16pt][b]PrismJS for SMF[/b][/size][/color]
+[color=blue][b][size=10pt]By Bugo[/size][/b][/color]
+[color=green]Эта модификация добавляет подсветку синтаксиса в блоках кода на форумах SMF.[/color][/center]
+
+[list]
+[li]Необходимо указывать используемый язык: [nobbc][code=html]<h1>Hello world</h1>[/code][/nobbc].[/li]
+[li]Можно указать язык по умолчанию и тогда доступна короткая запись: [nobbc][code]echo 'How are you?';[/code][/nobbc][/li]
+[li]Доступна смена стиля оформления (8 стилей).[/li]
+[/list]
+
+Используется скрипт [iurl=https://prismjs.com]PrismJS[/iurl] Lea Verou и соавторов.[hr][b]Распространяется на условиях лицензии MIT.[/b]

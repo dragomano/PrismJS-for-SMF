@@ -1,0 +1,11 @@
+[center][color=red][size=16pt][b]PrismJS for SMF[/b][/size][/color]
+[color=blue][b][size=10pt]By Bugo[/size][/b][/color]
+[color=green]This script highlights syntax in the code blocks on SMF forums.[/color][/center]
+
+[list]
+[li]It is necessary to specify the language used: [nobbc][code=html]<h1>Hello world</h1>[/code][/nobbc].[/li]
+[li]You can specify the default language and then short syntax is available: [nobbc][code]echo 'How are you?';[/code][/nobbc][/li]
+[li]The theme style can be changed (8 styles).[/li]
+[/list]
+
+This mod uses [iurl=https://prismjs.com]PrismJS[/iurl] script of Lea Verou and contributors.[hr][b]It is released under the MIT License.[/b]

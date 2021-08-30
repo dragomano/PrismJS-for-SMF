@@ -1,0 +1,16 @@
+
+.block_code pre code {
+	font-family: "DejaVu Sans Mono", "Fira Code", Monaco, Consolas, monospace;
+	white-space: pre-wrap;
+}
+pre {
+	max-height: 20em;
+}
+div.code-toolbar > .toolbar {
+	top: 1em !important;
+	right: 2em !important;
+}
+div.code-toolbar > .toolbar button:hover {
+	cursor: pointer;
+	color: orange !important;
+}
