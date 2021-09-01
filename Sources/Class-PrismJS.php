@@ -9,7 +9,7 @@
  * @copyright 2021 Bugo
  * @license https://opensource.org/licenses/MIT MIT
  *
- * @version 0.1
+ * @version 0.2
  */
 
 if (!defined('SMF'))
@@ -43,7 +43,7 @@ class PrismJS
 	{
 		add_integration_function('integrate_load_theme', __CLASS__ . '::loadTheme#', false, __FILE__);
 		add_integration_function('integrate_bbc_codes', __CLASS__ . '::bbcCodes#', false, __FILE__);
-		add_integration_function('integrate_prepare_display_context', __CLASS__ . '::prepareDisplayContext#', false, __FILE__);
+		add_integration_function('integrate_post_parsebbc', __CLASS__ . '::postParseBbc#', false, __FILE__);
 		add_integration_function('integrate_admin_areas', __CLASS__ . '::adminAreas#', false, __FILE__);
 		add_integration_function('integrate_admin_search', __CLASS__ . '::adminSearch#', false, __FILE__);
 		add_integration_function('integrate_modify_modifications', __CLASS__ . '::modifyModifications#', false, __FILE__);
@@ -141,19 +141,19 @@ class PrismJS
 	}
 
 	/**
-	 * @param array $output
+	 * @param string $message
 	 * @return void
 	 */
-	public function prepareDisplayContext(&$output)
+	public function postParseBbc(&$message)
 	{
 		global $modSettings;
 
-		if (empty($modSettings['prism_js_enable']))
+		if (empty($modSettings['prism_js_enable']) || strpos($message, '<pre') === false)
 			return;
 
-		if (strpos($output['body'], '<pre') !== false) {
-			$output['body'] = strtr($output['body'], array('<br>' => "\n"));
-		}
+		$message = preg_replace_callback('~<pre(.*?)>(.*?)<\/pre>~si', function ($matches) {
+			return str_replace('<br>', "\n", $matches[0]);
+		}, $message);
 	}
 
 	/**
@@ -200,8 +200,6 @@ class PrismJS
 		$context[$context['admin_menu_name']]['tab_data']['tabs']['prismjs'] = array('description' => $txt['prism_js_desc']);
 
 		$addSettings = [];
-		if (!isset($modSettings['prism_js_enable']))
-			$addSettings['prism_js_enable'] = 1;
 		if (!isset($modSettings['prism_js_fontsize']))
 			$addSettings['prism_js_fontsize'] = 'medium';
 		if (!isset($modSettings['prism_js_default_lang']))
@@ -265,7 +263,6 @@ function template_callback_prism_js_example()
 	if (file_exists($settings['default_theme_dir'] . '/css/admin.css'))	{
 		$file = file_get_contents($settings['default_theme_dir'] . '/css/admin.css');
 		$file = parse_bbc('[code=css]' . $file . '[/code]');
-		$file = strtr($file, array('<br>' => "\n"));
 
 		echo '</dl><strong>' . $txt['prism_js_example'] . '</strong>' . $file . '<dl><dt></dt><dd></dd>';
 	}
