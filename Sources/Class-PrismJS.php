@@ -9,7 +9,7 @@
  * @copyright 2021 Bugo
  * @license https://opensource.org/licenses/MIT MIT
  *
- * @version 0.2
+ * @version 0.3
  */
 
 if (!defined('SMF'))
@@ -59,26 +59,26 @@ class PrismJS
 
 		loadLanguage('PrismJS/');
 
-		if (empty($modSettings['prism_js_enable']) || in_array($context['current_action'], array('helpadmin', 'printpage')))
+		if (empty($modSettings['prism_js_enable']) || in_array($context['current_action'], array('helpadmin', 'printpage')) || $context['current_subaction'] == 'showoperations')
 			return;
 
-		loadCssFile(
+		loadCSSFile(
 			'https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism' . (!empty($modSettings['prism_js_style']) ? '-' . $modSettings['prism_js_style'] : '') . '.css',
 			array(
 				'external' => true
 			)
 		);
-		loadCssFile('prismjs.css');
+		loadCSSFile('prismjs.css');
 		loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js', array('external' => true));
 		loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js', array('external' => true));
 
 		if (!empty($modSettings['prism_js_line_numbers'])) {
-			loadCssFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css', array('external' => true));
+			loadCSSFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css', array('external' => true));
 			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.js', array('external' => true));
 		}
 
 		if (!empty($modSettings['prism_js_copy_btn'])) {
-			loadCssFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.css', array('external' => true));
+			loadCSSFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.css', array('external' => true));
 			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.js', array('external' => true));
 			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js', array('external' => true));
 		}
@@ -90,23 +90,14 @@ class PrismJS
 	 */
 	public function bbcCodes(&$codes)
 	{
-		global $modSettings, $txt;
+		global $modSettings, $context, $txt;
 
-		if (SMF === 'BACKGROUND' || empty($modSettings['prism_js_enable']))
+		if (SMF === 'BACKGROUND' || empty($modSettings['prism_js_enable']) || $context['current_subaction'] == 'showoperations') {
 			return;
-
-		$disabled = [];
-		if (!empty($modSettings['disabledBBC'])) {
-			foreach (explode(',', $modSettings['disabledBBC']) as $tag)
-				$disabled[$tag] = true;
 		}
 
-		if (isset($disabled['code']))
+		if (!empty($modSettings['disabledBBC']) && in_array('code', explode(',', $modSettings['disabledBBC']))) {
 			return;
-
-		foreach ($codes as $tag => $dump) {
-			if ($dump['tag'] == 'code')
-				unset($codes[$tag]);
 		}
 
 		if (!empty($txt['prism_js_op_copy']) && !empty($txt['prism_js_op_copy_alt']) && !empty($txt['prism_js_op_copied'])) {
@@ -121,14 +112,16 @@ class PrismJS
 			$lineNumbers = ' class="line-numbers"';
 		}
 
-		if (!empty($modSettings['prism_js_default_lang'])) {
-			$defaultLang = $modSettings['prism_js_default_lang'];
-		}
+		$defaultLang = $modSettings['prism_js_default_lang'] ?: 'php';
+
+		$codes = array_filter($codes, function ($code) {
+			return $code['tag'] !== 'code';
+		});
 
 		$codes[] = 	array(
 			'tag' => 'code',
 			'type' => 'unparsed_content',
-			'content' => '<figure' . ($labels ?? '') . ' class="block_code"' . ($fontSize ?? '') . '><pre' . ($lineNumbers ?? '') . '><code class="language-' . ($defaultLang ?? 'php') . '">$1</code></pre></figure>',
+			'content' => '<figure' . ($labels ?? '') . ' class="block_code"' . ($fontSize ?? '') . '><figcaption class="codeheader">' . $txt['code'] . ': ' . $defaultLang . '</figcaption><pre' . ($lineNumbers ?? '') . '><code class="language-' . $defaultLang . '">$1</code></pre></figure>',
 			'block_level' => true
 		);
 
@@ -152,7 +145,7 @@ class PrismJS
 			return;
 
 		$message = preg_replace_callback('~<pre(.*?)>(.*?)<\/pre>~si', function ($matches) {
-			return str_replace('<br>', "\n", $matches[0]);
+			return str_replace('<br>', PHP_EOL, $matches[0]);
 		}, $message);
 	}
 
@@ -192,7 +185,7 @@ class PrismJS
 	 */
 	public function settings($return_config = false)
 	{
-		global $context, $txt, $scripturl, $modSettings, $settings;
+		global $context, $txt, $scripturl, $modSettings;
 
 		$context['page_title']     = $txt['prism_js_title'];
 		$context['settings_title'] = $txt['prism_js_settings'];
