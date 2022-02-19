@@ -6,16 +6,16 @@
  * @package PrismJS for SMF
  * @link https://github.com/dragomano/prismjs-for-smf
  * @author Bugo https://dragomano.ru/mods/prismjs-for-smf
- * @copyright 2021 Bugo
+ * @copyright 2021-2022 Bugo
  * @license https://opensource.org/licenses/MIT MIT
  *
- * @version 0.3
+ * @version 0.4
  */
 
 if (!defined('SMF'))
 	die('Hacking attempt...');
 
-class PrismJS
+final class PrismJS
 {
 	private const STYLE_SET = [
 		''               => 'Default',
@@ -36,11 +36,9 @@ class PrismJS
 		'x-large' => 'x-large'
 	];
 
-	/**
-	 * @return void
-	 */
 	public function hooks()
 	{
+		add_integration_function('integrate_pre_css_output', __CLASS__ . '::preCssOutput#', false, __FILE__);
 		add_integration_function('integrate_load_theme', __CLASS__ . '::loadTheme#', false, __FILE__);
 		add_integration_function('integrate_bbc_codes', __CLASS__ . '::bbcCodes#', false, __FILE__);
 		add_integration_function('integrate_post_parsebbc', __CLASS__ . '::postParseBbc#', false, __FILE__);
@@ -51,54 +49,55 @@ class PrismJS
 	}
 
 	/**
-	 * @return void
+	 * @hook integrate_pre_css_output
 	 */
+	public function preCssOutput()
+	{
+		global $modSettings;
+
+		if (! $this->shouldItWork())
+			return;
+
+		echo "\n\t" . '<link rel="preload" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism' . (!empty($modSettings['prism_js_style']) ? '-' . $modSettings['prism_js_style'] : '') . '.min.css" as="style" onload="this.onload=null;this.rel=\'stylesheet\'">';
+
+		if (!empty($modSettings['prism_js_line_numbers']))
+			echo "\n\t" . '<link rel="preload" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.css" as="style" onload="this.onload=null;this.rel=\'stylesheet\'">';
+
+		if (!empty($modSettings['prism_js_copy_btn']))
+			echo "\n\t" . '<link rel="preload" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.css" as="style" onload="this.onload=null;this.rel=\'stylesheet\'">';
+	}
+
 	public function loadTheme()
 	{
 		global $modSettings, $context;
 
 		loadLanguage('PrismJS/');
 
-		if (empty($modSettings['prism_js_enable']) || in_array($context['current_action'], array('helpadmin', 'printpage')) || $context['current_subaction'] == 'showoperations')
+		if (! $this->shouldItWork())
 			return;
 
-		loadCSSFile(
-			'https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism' . (!empty($modSettings['prism_js_style']) ? '-' . $modSettings['prism_js_style'] : '') . '.css',
-			array(
-				'external' => true
-			)
-		);
+		$options = ['external' => true, 'defer' => true];
+
 		loadCSSFile('prismjs.css');
-		loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js', array('external' => true));
-		loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js', array('external' => true));
+		loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js', $options);
+		loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js', $options);
 
 		if (!empty($modSettings['prism_js_line_numbers'])) {
-			loadCSSFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css', array('external' => true));
-			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.js', array('external' => true));
+			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.js', $options);
 		}
 
 		if (!empty($modSettings['prism_js_copy_btn'])) {
-			loadCSSFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.css', array('external' => true));
-			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.js', array('external' => true));
-			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js', array('external' => true));
+			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/toolbar/prism-toolbar.min.js', $options);
+			loadJavaScriptFile('https://cdn.jsdelivr.net/npm/prismjs@1/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js', $options);
 		}
 	}
 
-	/**
-	 * @param array $codes
-	 * @return void
-	 */
-	public function bbcCodes(&$codes)
+	public function bbcCodes(array &$codes)
 	{
-		global $modSettings, $context, $txt;
+		global $txt, $modSettings;
 
-		if (SMF === 'BACKGROUND' || empty($modSettings['prism_js_enable']) || $context['current_subaction'] == 'showoperations') {
+		if (! $this->shouldItWork())
 			return;
-		}
-
-		if (!empty($modSettings['disabledBBC']) && in_array('code', explode(',', $modSettings['disabledBBC']))) {
-			return;
-		}
 
 		if (!empty($txt['prism_js_op_copy']) && !empty($txt['prism_js_op_copy_alt']) && !empty($txt['prism_js_op_copied'])) {
 			$labels = ' data-prismjs-copy="' . $txt['prism_js_op_copy'] . '" data-prismjs-copy-error="' . $txt['prism_js_op_copy_alt'] . '" data-prismjs-copy-success="' . $txt['prism_js_op_copied'] . '"';
@@ -118,7 +117,7 @@ class PrismJS
 			return $code['tag'] !== 'code';
 		});
 
-		$codes[] = 	array(
+		$codes[] = array(
 			'tag' => 'code',
 			'type' => 'unparsed_content',
 			'content' => '<figure' . ($labels ?? '') . ' class="block_code"' . ($fontSize ?? '') . '><figcaption class="codeheader">' . $txt['code'] . ': ' . $defaultLang . '</figcaption><pre' . ($lineNumbers ?? '') . '><code class="language-' . $defaultLang . '">$1</code></pre></figure>',
@@ -133,15 +132,9 @@ class PrismJS
 		);
 	}
 
-	/**
-	 * @param string $message
-	 * @return void
-	 */
-	public function postParseBbc(&$message)
+	public function postParseBbc(string &$message)
 	{
-		global $modSettings;
-
-		if (empty($modSettings['prism_js_enable']) || strpos($message, '<pre') === false)
+		if (! $this->shouldItWork() || strpos($message, '<pre') === false)
 			return;
 
 		$message = preg_replace_callback('~<pre(.*?)>(.*?)<\/pre>~si', function ($matches) {
@@ -149,33 +142,19 @@ class PrismJS
 		}, $message);
 	}
 
-	/**
-	 * @param array $admin_areas
-	 * @return void
-	 */
-	public function adminAreas(&$admin_areas)
+	public function adminAreas(array &$admin_areas)
 	{
 		global $txt;
 
 		$admin_areas['config']['areas']['modsettings']['subsections']['prismjs'] = array($txt['prism_js_title']);
 	}
 
-	/**
-	 * @param array $language_files
-	 * @param array $include_files
-	 * @param array $settings_search
-	 * @return void
-	 */
-	public function adminSearch(&$language_files, &$include_files, &$settings_search)
+	public function adminSearch(array &$language_files, array &$include_files, array &$settings_search)
 	{
 		$settings_search[] = array(array($this, 'settings'), 'area=modsettings;sa=prismjs');
 	}
 
-	/**
-	 * @param array $subActions
-	 * @return void
-	 */
-	public function modifyModifications(&$subActions)
+	public function modifyModifications(array &$subActions)
 	{
 		$subActions['prismjs'] = array($this, 'settings');
 	}
@@ -230,9 +209,6 @@ class PrismJS
 		prepareDBSettingContext($config_vars);
 	}
 
-	/**
-	 * @return void
-	 */
 	public function credits()
 	{
 		global $modSettings, $context;
@@ -240,15 +216,23 @@ class PrismJS
 		if (empty($modSettings['prism_js_enable']))
 			return;
 
-		$link = $context['user']['language'] == 'russian' ? 'https://dragomano.ru/mods/prismjs-for-smf' : 'https://github.com/dragomano/PrismJS-for-SMF';
+		$context['credits_modifications'][] = '<a href="https://github.com/dragomano/PrismJS-for-SMF" target="_blank" rel="noopener">PrismJS for SMF</a> &copy; 2021-2022, Bugo';
+	}
 
-		$context['credits_modifications'][] = '<a href="' . $link . '" target="_blank" rel="noopener">PrismJS for SMF</a> &copy; 2021, Bugo';
+	private function shouldItWork(): bool
+	{
+		global $modSettings, $context;
+
+		if (SMF === 'BACKGROUND' || SMF === 'SSI' || empty($modSettings['enableBBC']) || empty($modSettings['prism_js_enable']))
+			return false;
+
+		if (in_array($context['current_action'], array('helpadmin', 'printpage')) || $context['current_subaction'] === 'showoperations')
+			return false;
+
+		return empty($modSettings['disabledBBC']) || !in_array('code', explode(',', $modSettings['disabledBBC']));
 	}
 }
 
-/**
- * @return void
- */
 function template_callback_prism_js_example()
 {
 	global $settings, $txt;

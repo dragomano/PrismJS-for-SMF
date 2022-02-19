@@ -8,7 +8,7 @@
  *
  */
 
-$txt['prism_js_title']    = 'Resaltado de sintaxis';
+$txt['prism_js_title']    = 'PrismJS for SMF';
 $txt['prism_js_settings'] = 'Resaltar la configuración';
 $txt['prism_js_desc']     = 'En esta área puede activar / desactivar el resaltado, elegir el estilo de estilo preferido, etc.';
 $txt['prism_js_enable']   = 'Habilitar resaltado de sintaxis';

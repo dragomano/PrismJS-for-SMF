@@ -8,7 +8,7 @@
  *
  */
 
-$txt['prism_js_title']        = 'Syntax Highlighting';
+$txt['prism_js_title']        = 'PrismJS for SMF';
 $txt['prism_js_settings']     = 'Highlight settings';
 $txt['prism_js_desc']         = 'On this area you can enable/disable highlighting, choose preferred style theme etc.';
 $txt['prism_js_enable']       = 'Enable syntax highlighting';

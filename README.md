@@ -1,12 +1,9 @@
 # PrismJS for SMF
-![SMF 2.1](https://img.shields.io/badge/SMF-2.1-blue.svg?style=flat&color=ed6033)
-![License](https://img.shields.io/github/license/dragomano/prismjs-for-smf)
+[![SMF 2.1](https://img.shields.io/badge/SMF-2.1-ed6033.svg?style=flat)](https://github.com/SimpleMachines/SMF2.1)
+![License: MIT](https://img.shields.io/github/license/dragomano/prismjs-for-smf)
+![Hooks only: Yes](https://img.shields.io/badge/Hooks%20only-YES-blue)
 
-* **Author:** Bugo [dragomano.ru](https://dragomano.ru/mods/prismjs-for-smf)
-* **License:** [MIT](https://github.com/dragomano/PrismJS-for-SMF/blob/master/LICENSE)
-* **Compatible with:** SMF 2.1.x
-* **Tested on:** PHP 8.0.10
-* **Hooks only:** Yes
+* **Tested on:** PHP 7.4.27
 * **Languages:** English, French, Russian, Spanish
 
 ## Description
