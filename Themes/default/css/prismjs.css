@@ -1,4 +1,5 @@
 
+.block_code pre,
 .block_code pre code {
   font-family: "DejaVu Sans Mono", "Fira Code", Monaco, Consolas, monospace;
   white-space: pre-wrap;
